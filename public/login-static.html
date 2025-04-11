@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión - Usina Leads</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    .error {
+      color: #ef4444;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .success {
+      color: #10b981;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .loading {
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Iniciar sesión</h1>
+    <div id="login-form">
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" value="admin@usina.com" placeholder="Correo electrónico">
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" value="usina123" placeholder="Contraseña">
+      </div>
+      <button id="login-button">Iniciar sesión</button>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginButton = document.getElementById('login-button');
+      const messageDiv = document.getElementById('message');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      loginButton.addEventListener('click', async function() {
+        // Mostrar estado de carga
+        loginButton.disabled = true;
+        messageDiv.className = 'loading';
+        messageDiv.textContent = 'Iniciando sesión...';
+
+        try {
+          // Obtener valores del formulario
+          const email = emailInput.value;
+          const password = passwordInput.value;
+
+          // Realizar solicitud directa a la API de Supabase
+          const response = await fetch('https://tkemkktgwstrrsqocydy.supabase.co/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZW1ra3Rnd3N0cnJzcW9jeWR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI3NzA1NzYsImV4cCI6MjAyODM0NjU3Nn0.Wd9JKh0ooLj8QOzQfnxHJQGe-8jqnVZIIl_oJaLIXSQ'
+            },
+            body: JSON.stringify({
+              email,
+              password
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Éxito - mostrar mensaje y redirigir
+            messageDiv.className = 'success';
+            messageDiv.textContent = 'Inicio de sesión exitoso. Redirigiendo...';
+            
+            // Guardar token en localStorage (solo para pruebas)
+            localStorage.setItem('supabase.auth.token', JSON.stringify({
+              access_token: data.access_token,
+              refresh_token: data.refresh_token
+            }));
+
+            // Redirigir después de un breve retraso
+            setTimeout(() => {
+              window.location.href = '/servidores';
+            }, 1000);
+          } else {
+            // Error - mostrar mensaje de error
+            messageDiv.className = 'error';
+            messageDiv.textContent = data.error_description || 'Error al iniciar sesión';
+            loginButton.disabled = false;
+          }
+        } catch (error) {
+          // Error de red u otro error
+          messageDiv.className = 'error';
+          messageDiv.textContent = 'Error de conexión. Inténtalo de nuevo.';
+          loginButton.disabled = false;
+          console.error('Error:', error);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
